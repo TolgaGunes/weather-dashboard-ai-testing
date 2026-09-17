@@ -1,0 +1,36 @@
+name: CI - Automation Test runner
+
+on:
+  pull_request:
+    branches: [ main ] # Triggers the workflow only on Pull Requests targeted to the main branch
+
+jobs:
+  run-automation:
+    runs-on: ubuntu-latest # Uses the free Linux runner provided by GitHub
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 and Maven Environment
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17' # Matches the Java version of this project
+          distribution: 'temurin'
+          cache: maven
+
+      # Note: If we add UI tests (Selenium/Playwright) later,
+      # this step ensures Google Chrome is ready on the Linux server.
+      - name: Set up Browser Infrastructure (Chrome & Drivers)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Run Standard Tests
+        run: mvn clean test
+
+      - name: Publish JUnit Test Results to PR Page
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always() # Ensures the test report is published even if tests fail and the build crashes
+        with:
+          files: "**/target/surefire-reports/*.xml"
