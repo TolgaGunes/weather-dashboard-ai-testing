@@ -42,16 +42,15 @@ class WeatherApiContractTest {
     }
 
     @Test
-    void weatherInvalidCity_returnsErrorStatus() {
-        String url = "http://localhost:" + port + "/weather?city=ThisCityShouldNotExist_12345";
+    void weatherInvalidCity_returns404() {
+
+        String url = "http://localhost:" + port +
+                "/weather?city=ThisCityShouldNotExist_12345";
 
         ResponseEntity<String> response =
                 rest.getForEntity(url, String.class);
 
-        int status = response.getStatusCode().value();
-
-        boolean valid = status == 400 || status == 404 || status == 500;
-        assertTrue(valid, "Unexpected status code: " + status + " body=" + response.getBody());
+        assertEquals(404, response.getStatusCode().value());
     }
 
 

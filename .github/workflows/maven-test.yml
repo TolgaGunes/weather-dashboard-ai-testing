@@ -2,11 +2,16 @@ name: CI - Automation Test runner
 
 on:
   pull_request:
-    branches: [ main ] # Triggers the workflow only on Pull Requests targeted to the main branch
+    branches: [ main ]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
   run-automation:
-    runs-on: ubuntu-latest # Uses the free Linux runner provided by GitHub
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Source Code
@@ -15,22 +20,17 @@ jobs:
       - name: Set up Java 17 and Maven Environment
         uses: actions/setup-java@v4
         with:
-          java-version: '17' # Matches the Java version of this project
+          java-version: '17'
           distribution: 'temurin'
           cache: maven
 
-      # Note: If we add UI tests (Selenium/Playwright) later,
-      # this step ensures Google Chrome is ready on the Linux server.
-      - name: Set up Browser Infrastructure (Chrome & Drivers)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
       - name: Run Standard Tests
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
         run: mvn clean test
 
       - name: Publish JUnit Test Results to PR Page
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() # Ensures the test report is published even if tests fail and the build crashes
+        if: always()
         with:
           files: "**/target/surefire-reports/*.xml"
